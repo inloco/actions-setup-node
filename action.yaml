@@ -33,24 +33,25 @@ runs:
         scope: ${{ inputs.scope }}
         token: ${{ inputs.token }}
     - name: Set up npm
+      id: npm
       run: |
-        npm config set prefix ${HOME}/.local
-        echo "::add-path::${HOME}/.local/bin"
-        echo "::set-output name=cache-dir::${HOME}/.npm"
+        npm config set prefix ${HOME}/.npm-global
+        echo "::add-path::$(npm bin -g)"
+        echo "::set-output name=cache-dir::$(npm config get cache)"
     - name: Cache npm
       uses: inloco/actions-cache@HEAD
       with:
         cache-url: ${{ inputs.cache-url }}
         runtime-url: ${{ inputs.runtime-url }}
         runtime-token: ${{ inputs.runtime-token }}
-        path: ${{ steps.yarn.outputs.cache-dir }}
-        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-        restore-keys: ${{ runner.os }}-yarn-
+        path: ${{ steps.npm.outputs.cache-dir }}
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: ${{ runner.os }}-node-
     - name: Set up yarn
       id: yarn
       run: |
         npm install -g yarn
-        echo "::add-path::$(yarn bin)"
+        echo "::add-path::$(yarn global bin)"
         echo "::set-output name=cache-dir::$(yarn cache dir)"
     - name: Cache yarn
       uses: inloco/actions-cache@HEAD
